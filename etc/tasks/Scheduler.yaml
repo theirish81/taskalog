@@ -1,0 +1,13 @@
+task_id: Scheduler
+max_duration_seconds: 10
+ordered: true
+steps:
+  - id: emit
+    status: NONE
+    expected_status: DONE
+  - id: delivered
+    expected_status: DONE
+    status: NONE
+  - id: executed
+    expected_status: DONE
+    status: NONE
