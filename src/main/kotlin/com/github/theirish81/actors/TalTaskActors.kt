@@ -2,6 +2,7 @@ package com.github.theirish81.actors
 
 import com.github.theirish81.TalFS
 import com.github.theirish81.messages.*
+import com.github.theirish81.notifications.ITalNotification
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
@@ -24,10 +25,12 @@ object TalTaskActors {
     fun CoroutineScope.acceptSubmissionActor() = actor<TalSubmission>(pool) {
         val log = LoggerFactory.getLogger("actors.acceptSubmissionActor")
         log.info("Starting actor")
-        for(msg in channel){
+        for(msg in channel) try {
             log.debug("Accepting submission for `${msg.id}`")
             msg.receiveDate = Date()
             loadTask?.send(msg)
+        }catch (e : Exception) {
+            log.error("Error while accepting submission", e)
         }
     }
 
@@ -37,7 +40,7 @@ object TalTaskActors {
     fun CoroutineScope.loadTaskActor() = actor<TalSubmission>(pool) {
         val log = LoggerFactory.getLogger("actors.loadTaskActor")
         log.info("Starting actor")
-        for(msg in channel){
+        for(msg in channel) try {
             log.debug("Loading task `${msg.taskId}` for `${msg.id}`")
             val task = TalFS.loadTask(msg.taskId)
             if(task.isPresent) {
@@ -46,6 +49,8 @@ object TalTaskActors {
             } else {
                 log.error("Error - I couldn't find the task")
             }
+        }catch(e : Exception) {
+            log.error("Error while loading task", e)
         }
     }
 
@@ -55,7 +60,7 @@ object TalTaskActors {
     fun CoroutineScope.findOrCreateWorklogActor() = actor<TalSubAndTask>(pool) {
         val log = LoggerFactory.getLogger("actors.findOrCreateWorklogActor")
         log.info("Starting actor")
-        for(msg in channel){
+        for(msg in channel)try {
             if(TalFS.hasWorklogExpired(msg.task.taskId,msg.submission.id)){
                 log.debug("Submission to expired or invalid worklog `${msg.submission.id}`. Discarding")
                 continue
@@ -71,6 +76,8 @@ object TalTaskActors {
                 log.debug("Loading existing worklog file for `${msg.submission.id}`")
                 updateWorklog?.send(TalSubAndWorklog(msg.submission,TalFS.deserializeYaml(worklogFile,TalWorklog::class.java)))
             }
+        }catch(e : Exception) {
+            log.error("Error during find/create worklog",e)
         }
 
     }
@@ -81,7 +88,7 @@ object TalTaskActors {
     fun CoroutineScope.updateWorklogActor() = actor<TalSubAndWorklog>(pool) {
         val log = LoggerFactory.getLogger("actors.updateWorklogActor")
         log.info("Starting actor")
-        for(msg in channel){
+        for(msg in channel) try {
             val step = msg.worklog.steps.find { it.id == msg.submission.stepId }
             if(step == null){
                 log.error("Error, step `${msg.submission.stepId}` does not exist in task `${msg.submission.taskId}` for `${msg.submission.id}`")
@@ -96,6 +103,8 @@ object TalTaskActors {
             val taskFile = TalFS.getWorklogFile(msg.worklog.taskId, msg.submission.id)
             taskFile.writeText(TalFS.serializeAsYaml(msg.worklog))
             evaluateWorklog?.send(msg.worklog)
+        }catch(e : Exception){
+            log.error("Error while updating worklog", e)
         }
     }
 
@@ -105,12 +114,14 @@ object TalTaskActors {
     fun CoroutineScope.evaluateWorklogActor() = actor<TalWorklog>(pool) {
         val log = LoggerFactory.getLogger("actors.evaluateWorklogActor")
         log.info("Starting actor")
-        for(msg in channel){
+        for(msg in channel)try {
             val status = TalStatus(msg.isComplete(),msg.isLate(),msg.isInOrder(),
                                     if(!msg.isInOrder()) "NOT_ORDERED" else "")
-            log.debug("Evaluating the status of `${msg.id}` -> Complete: ${status.complete}, Late: ${status.late} InOrder: ${status.valid}")
+            log.debug("Evaluating the status of `${msg.id}` -> Complete: ${status.complete}, Late: ${status.late}, InOrder: ${status.valid}")
             val statusAndWorklog = TalStatusAndWorklog(status,msg)
             notify?.send(statusAndWorklog)
+        }catch (e : Exception){
+            log.error("Error during worklog evaluation",e)
         }
     }
 
@@ -121,11 +132,19 @@ object TalTaskActors {
         val log = LoggerFactory.getLogger("actors.notifyActor")
         val resultsLog = LoggerFactory.getLogger("results")
         log.info("Starting actor")
-        for(msg in channel){
+        for(msg in channel) try {
             if(msg.status.complete || msg.status.late || !msg.status.valid) {
                 resultsLog.info(TalFS.serializeAsJSON(msg))
+                if(msg.status.late || !msg.status.valid)
+                    (TalConfig.appConfig["notificators"] as List<String>).forEach {
+                        val notification : ITalNotification = Class.forName(it).newInstance() as ITalNotification
+                        notification.notify(msg)
+                    }
+
                 cleanup?.send(msg)
             }
+        }catch(e : Exception) {
+            log.error("Error in the notification process", e)
         }
     }
 
@@ -135,11 +154,14 @@ object TalTaskActors {
     fun CoroutineScope.cleanupActor() = actor<TalStatusAndWorklog>(pool) {
         val log = LoggerFactory.getLogger("actors.cleanupActor")
         log.info("Starting actor")
-        for(msg in channel){
+        for(msg in channel) try {
+            log.debug("CLEARING ACTOR")
             val worklogFile = TalFS.getWorklogFile(msg.worklog.taskId,msg.worklog.id)
             if(msg.status.late || !msg.status.valid)
                 TalFS.createExpiryFile(msg.worklog.taskId,msg.worklog.id)
             worklogFile.delete()
+        }catch(e : Exception) {
+            log.error("Error during cleanup", e)
         }
     }
 

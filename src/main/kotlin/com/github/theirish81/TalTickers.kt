@@ -19,7 +19,7 @@ object TalTickers {
 class CheckWorklogs : TimerTask() {
     override fun run() {
         TalFS.getWorklogsFile().listFiles().filter{ it.isDirectory }.forEach { category ->
-            category.listFiles().filter{ it.extension == "yaml" }.forEach { worklog ->
+            category.listFiles().filter{ it.extension == "yml" }.forEach { worklog ->
                 GlobalScope.launch {
                     TalTaskActors.evaluateWorklog!!.send(TalFS.deserializeYaml(worklog,TalWorklog::class.java))
                 }

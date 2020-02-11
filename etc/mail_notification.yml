@@ -1,0 +1,7 @@
+from: info@example.com
+host: smtp.example.com
+port: 587
+username: info@example.com
+password: 'bananas'
+startTLS: true
+recipient: everybody@example.com

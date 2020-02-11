@@ -31,14 +31,14 @@ object TalFS {
     }
 
     fun getWorklogFile(task : String, worklogId : String) : File =
-            getWorklogCategoryFile(task).resolve(worklogId+".yaml")
+            getWorklogCategoryFile(task).resolve(worklogId+".yml")
 
 
     fun getEtcFile() : File = File("etc")
 
     fun getTasksFile() : File = getEtcFile().resolve("tasks")
 
-    fun getTaskFile(taskId : String) : File = getTasksFile().resolve(taskId+".yaml")
+    fun getTaskFile(taskId : String) : File = getTasksFile().resolve(taskId+".yml")
 
     fun hasWorklogExpired(taskId : String, worklogId : String) : Boolean =
             getWorklogCategoryFile(taskId).resolve("_"+worklogId).exists()
