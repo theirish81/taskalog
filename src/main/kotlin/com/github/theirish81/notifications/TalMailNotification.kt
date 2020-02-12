@@ -41,10 +41,7 @@ object TalMailNotification : ITalNotification {
         return props
     }
 
-    private fun sendEmail(text : String, subject : String) {
-        val config = TalFS.parseYamlFile(TalFS.getEtcFile().resolve("mail_notification.yml"))
-        if(!(config["enabled"] as Boolean))
-            return
+    private fun sendEmail(text : String, subject : String, config : Map<*,*>) {
         val props = setupProps(config)
         val session: Session = Session.getInstance(props, null)
         val message = MimeMessage(session)
@@ -62,20 +59,27 @@ object TalMailNotification : ITalNotification {
     override fun notify(msg : TalStatusAndWorklog) {
 
         GlobalScope.launch {
-            val context = Context()
-            context.setVariable("msg",msg)
-            val template = templateEngine.process(TalFS.getEtcFile().resolve("email_templates")
-                                                        .resolve("task.html").absolutePath,context)
-            sendEmail(template, "Failure to comply to task `${msg.worklog.taskId}`")
+            val config = TalFS.parseYamlFile(TalFS.getEtcFile().resolve("mail_notification.yml"))
+            if((config["enabled"] as Boolean)) {
+                val context = Context()
+                context.setVariable("msg", msg)
+                val template = templateEngine.process(TalFS.getEtcFile().resolve("email_templates")
+                        .resolve("task.html").absolutePath, context)
+                sendEmail(template, "Failure to comply to task `${msg.worklog.taskId}`", config)
+            }
         }
     }
 
     override fun notify(msg: TalTimer) {
         GlobalScope.launch {
-            val context = Context()
-            context.setVariable("msg",msg)
-            val template = templateEngine.process("etc/email_templates/timer.html",context)
-            sendEmail(template, "Failure to comply to timer `${msg.id}`")
+            val config = TalFS.parseYamlFile(TalFS.getEtcFile().resolve("mail_notification.yml"))
+            if((config["enabled"] as Boolean)) {
+                val context = Context()
+                context.setVariable("msg", msg)
+                val template = templateEngine.process(TalFS.getEtcFile().resolve("email_templates")
+                                .resolve("timer.html").absolutePath, context)
+                sendEmail(template, "Failure to comply to timer `${msg.id}`", config)
+            }
         }
     }
 }
