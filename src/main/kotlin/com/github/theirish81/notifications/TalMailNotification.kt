@@ -64,7 +64,7 @@ object TalMailNotification : ITalNotification {
         GlobalScope.launch {
             val context = Context()
             context.setVariable("msg",msg)
-            val template = templateEngine.process(TalFS.getEtcFile().resolve("etc_templates")
+            val template = templateEngine.process(TalFS.getEtcFile().resolve("email_templates")
                                                         .resolve("task.html").absolutePath,context)
             sendEmail(template, "Failure to comply to task `${msg.worklog.taskId}`")
         }
