@@ -5,3 +5,4 @@ username: info@example.com
 password: 'bananas'
 startTLS: true
 recipient: everybody@example.com
+enabled: false

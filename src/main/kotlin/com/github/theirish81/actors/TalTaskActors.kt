@@ -135,7 +135,7 @@ object TalTaskActors {
      */
     fun CoroutineScope.storeResultActor() = actor<TalStatusAndWorklog>(pool) {
         val log = LoggerFactory.getLogger("task.actors.storeResultActor")
-        val resultsLog = LoggerFactory.getLogger("results")
+        val resultsLog = LoggerFactory.getLogger("task_results")
         for(msg in channel) try {
             log.debug("Registering worklog `${msg.worklog.id}` result")
             resultsLog.info(TalFS.serializeAsJSON(msg))

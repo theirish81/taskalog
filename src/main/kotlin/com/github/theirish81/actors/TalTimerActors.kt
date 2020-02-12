@@ -1,8 +1,10 @@
 package com.github.theirish81.actors
 
+import TalConfig
 import com.github.theirish81.TalFS
 import com.github.theirish81.messages.TalTimer
 import com.github.theirish81.messages.TalTimerAndLastExecutionTime
+import com.github.theirish81.notifications.ITalNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.SendChannel
@@ -12,12 +14,17 @@ import kotlinx.coroutines.newSingleThreadContext
 import org.slf4j.LoggerFactory
 import java.util.*
 
+/**
+ * Timers actors
+ */
 object TalTimerActors {
 
     val pool = newSingleThreadContext("timerActorPool")
 
-
-    fun CoroutineScope.acceptSubmissionActor() = actor<TalTimer>(TalTimerActors.pool) {
+    /**
+     * Actor accepting timer events
+     */
+    fun CoroutineScope.acceptSubmissionActor() = actor<TalTimer>(pool) {
         val log = LoggerFactory.getLogger("timer.actors.acceptSubmissionActor")
         log.info("Starting actor")
         for(msg in channel) try {
@@ -30,7 +37,10 @@ object TalTimerActors {
         }
     }
 
-    fun CoroutineScope.loadTimerActor() = actor<TalTimer>(TalTimerActors.pool){
+    /**
+     * Actor loading timer definition
+     */
+    fun CoroutineScope.loadTimerActor() = actor<TalTimer>(pool){
         val log = LoggerFactory.getLogger("timer.actors.loadTimerActor")
         log.info("Starting actor")
         for(msg in channel) try {
@@ -39,6 +49,8 @@ object TalTimerActors {
             if(timerDefinition.isPresent){
                 msg.everySeconds = timerDefinition.get().everySeconds
                 loadTimerLog!!.send(msg)
+            } else {
+                log.error("Could not load timer `${msg.id}`")
             }
 
         }catch(e : Exception) {
@@ -46,7 +58,7 @@ object TalTimerActors {
         }
     }
 
-    fun CoroutineScope.loadOrCreateTimerLogActor() = actor<TalTimer>(TalTimerActors.pool){
+    fun CoroutineScope.loadOrCreateTimerLogActor() = actor<TalTimer>(pool){
         val log = LoggerFactory.getLogger("timer.actors.loadOrCreateTimerLogActor")
         log.info("Starting actor")
         for(msg in channel) try {
@@ -54,6 +66,7 @@ object TalTimerActors {
             if(!worklogFile.exists()){
                 log.debug("Creating worklog for `${msg.id}`")
                 worklogFile.createNewFile()
+                worklogFile.deleteOnExit()
                 worklogFile.writeText(TalFS.serializeAsYaml(msg))
 
             } else {
@@ -67,15 +80,52 @@ object TalTimerActors {
         }
     }
 
-    fun CoroutineScope.evaluateTimerActor() = actor<TalTimerAndLastExecutionTime>(TalTimerActors.pool){
+    /**
+     * Evaluates whether a timer is late or not
+     */
+    fun CoroutineScope.evaluateTimerActor() = actor<TalTimerAndLastExecutionTime>(pool){
         val log = LoggerFactory.getLogger("timer.actors.loadOrCreateTimerLogActor")
         log.info("Starting actor")
         for(msg in channel) try {
             if (msg.timer.executionTime!!.time > msg.lastExecutionTime+ + msg.timer.everySeconds*1000) {
-                println("BAD")
+                log.debug("Timer is late `${msg.timer.id}`")
+                storeResult!!.send(msg.timer)
+                notifyTimer!!.send(msg.timer)
             }
         }catch(e : Exception) {
             log.error("Error while accepting submission", e)
+        }
+    }
+
+    /**
+     * The actor that takes care of logging the verdict on the task
+     */
+    fun CoroutineScope.storeResultActor() = actor<TalTimer>(pool) {
+        val log = LoggerFactory.getLogger("timer.actors.storeResultActor")
+        val resultsLog = LoggerFactory.getLogger("timer_results")
+        for(msg in channel) try {
+            log.debug("Registering timer `${msg.id}` result")
+            resultsLog.info(TalFS.serializeAsJSON(msg))
+        }catch(e : Exception){
+            log.error("Error while registering timer", e)
+        }
+    }
+
+
+    /**
+     * Notifies when a timer is late
+     */
+    fun CoroutineScope.notifyTimerActor() = actor<TalTimer>(pool) {
+        val log = LoggerFactory.getLogger("timer.actors.notifyTimerActorActor")
+        log.info("Starting actor")
+        for(msg in channel) try {
+            log.debug("Running notifications for `${msg.id}`")
+            (TalConfig.appConfig["notificators"] as List<String>).forEach {
+                val notification = Class.forName(it).kotlin.objectInstance as ITalNotification
+                notification.notify(msg)
+            }
+        }catch(e : Exception){
+            log.error("Error in the notification process", e)
         }
     }
 
@@ -83,6 +133,8 @@ object TalTimerActors {
     var loadTimer : SendChannel<TalTimer>? = null
     var loadTimerLog : SendChannel<TalTimer>? = null
     var evaluateTimer : SendChannel<TalTimerAndLastExecutionTime>? = null
+    var notifyTimer : SendChannel<TalTimer>? = null
+    var storeResult : SendChannel<TalTimer>? = null
 
     fun initialize() {
         GlobalScope.launch(TalTaskActors.pool) {
@@ -90,6 +142,8 @@ object TalTimerActors {
             loadTimer = loadTimerActor()
             loadTimerLog = loadOrCreateTimerLogActor()
             evaluateTimer = evaluateTimerActor()
+            notifyTimer = notifyTimerActor()
+            storeResult = storeResultActor()
         }
     }
 }

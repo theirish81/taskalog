@@ -1,0 +1,19 @@
+<html>
+<head></head>
+<body>
+<h1>
+    Compliance failure for timer
+</h1>
+<h2>Timer: <span th:text="${msg.id}"></span></h2>
+<div>
+    <h3>Clause</h3>
+    <p><span th:text="${msg.everySeconds}"> seconds</p>
+</div>
+<div>
+    <h3>Execution time</h3>
+    <p th:text="${msg.executionTime}"></p>
+</div>
+
+
+</body>
+</html>

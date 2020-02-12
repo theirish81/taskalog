@@ -10,9 +10,21 @@
     </appender>
 
     <appender name="TASK_RESULTS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>results/logs.log</file>
+        <file>results/task_logs.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>task_logs.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="TIMER_RESULTS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>results/timer_logs.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>timer_logs.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
@@ -30,7 +42,10 @@
     <logger name="timer.actors" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="results" level="INFO" additivity="false">
+    <logger name="task_results" level="INFO" additivity="false">
         <appender-ref ref="TASK_RESULTS"/>
+    </logger>
+    <logger name="timer_results" level="INFO" additivity="false">
+        <appender-ref ref="TIMER_RESULTS"/>
     </logger>
 </configuration>
