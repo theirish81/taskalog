@@ -3,7 +3,7 @@ package com.github.theirish81.actors
 import TalConfig
 import com.github.theirish81.TalFS
 import com.github.theirish81.messages.TalTimer
-import com.github.theirish81.messages.TalTimerAndLastExecutionTime
+import com.github.theirish81.messages.TalTimerSubAndWorklog
 import com.github.theirish81.notifications.ITalNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
@@ -58,6 +58,9 @@ object TalTimerActors {
         }
     }
 
+    /**
+     * Actor that loads ore create a timer log
+     */
     fun CoroutineScope.loadOrCreateTimerLogActor() = actor<TalTimer>(pool){
         val log = LoggerFactory.getLogger("timer.actors.loadOrCreateTimerLogActor")
         log.info("Starting actor")
@@ -68,29 +71,34 @@ object TalTimerActors {
                 worklogFile.createNewFile()
                 worklogFile.deleteOnExit()
                 worklogFile.writeText(TalFS.serializeAsYaml(msg))
-
             } else {
                 log.debug("Loading worklog for `${msg.id}`")
-                val lastExecutionTime = TalFS.loadTimerWorklog(msg.id).get().executionTime!!.time
-                evaluateTimer!!.send(TalTimerAndLastExecutionTime(msg,lastExecutionTime))
-                worklogFile.writeText(TalFS.serializeAsYaml(msg))
+                val worklog = TalFS.loadTimerWorklog(msg.id).get()
+                val serializableWorklog = worklog.clone()
+                serializableWorklog.executionTime = msg.executionTime
+                worklogFile.writeText(TalFS.serializeAsYaml(serializableWorklog))
+                evaluateTimer!!.send(TalTimerSubAndWorklog(msg,worklog))
             }
         }catch(e : Exception) {
             log.error("Error while accepting submission", e)
         }
     }
 
+
     /**
      * Evaluates whether a timer is late or not
      */
-    fun CoroutineScope.evaluateTimerActor() = actor<TalTimerAndLastExecutionTime>(pool){
+    fun CoroutineScope.evaluateTimerActor() = actor<TalTimerSubAndWorklog>(pool){
         val log = LoggerFactory.getLogger("timer.actors.loadOrCreateTimerLogActor")
         log.info("Starting actor")
         for(msg in channel) try {
-            if (msg.timer.executionTime!!.time > msg.lastExecutionTime+ + msg.timer.everySeconds*1000) {
-                log.debug("Timer is late `${msg.timer.id}`")
-                storeResult!!.send(msg.timer)
-                notifyTimer!!.send(msg.timer)
+            if (msg.submission.executionTime!!.time > msg.submission.everySeconds*1000 + msg.worklog.executionTime!!.time) {
+                log.debug("Timer is late `${msg.submission.id}`")
+                storeResult!!.send(msg.submission)
+                notifyTimer!!.send(msg.submission)
+                TalFS.getTimerWorklogFile(msg.submission.id).writeText(TalFS.serializeAsYaml(msg.submission))
+            } else {
+                log.debug("Timer is in time for ${msg.submission.id}`")
             }
         }catch(e : Exception) {
             log.error("Error while accepting submission", e)
@@ -132,7 +140,7 @@ object TalTimerActors {
     var acceptSubmission : SendChannel<TalTimer>? = null
     var loadTimer : SendChannel<TalTimer>? = null
     var loadTimerLog : SendChannel<TalTimer>? = null
-    var evaluateTimer : SendChannel<TalTimerAndLastExecutionTime>? = null
+    var evaluateTimer : SendChannel<TalTimerSubAndWorklog>? = null
     var notifyTimer : SendChannel<TalTimer>? = null
     var storeResult : SendChannel<TalTimer>? = null
 

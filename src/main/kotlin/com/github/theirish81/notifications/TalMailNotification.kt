@@ -6,6 +6,7 @@ import com.github.theirish81.messages.TalTimer
 import com.sun.mail.smtp.SMTPTransport
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import org.thymeleaf.templateresolver.FileTemplateResolver
@@ -16,6 +17,8 @@ import javax.mail.internet.MimeMessage
 
 
 object TalMailNotification : ITalNotification {
+
+    val pool = newSingleThreadContext("emailNotificationActorPool")
 
     val templateEngine = TemplateEngine()
     init {
@@ -58,7 +61,7 @@ object TalMailNotification : ITalNotification {
 
     override fun notify(msg : TalStatusAndWorklog) {
 
-        GlobalScope.launch {
+        GlobalScope.launch(pool) {
             val config = TalFS.parseYamlFile(TalFS.getEtcFile().resolve("mail_notification.yml"))
             if((config["enabled"] as Boolean)) {
                 val context = Context()
@@ -71,7 +74,7 @@ object TalMailNotification : ITalNotification {
     }
 
     override fun notify(msg: TalTimer) {
-        GlobalScope.launch {
+        GlobalScope.launch(pool) {
             val config = TalFS.parseYamlFile(TalFS.getEtcFile().resolve("mail_notification.yml"))
             if((config["enabled"] as Boolean)) {
                 val context = Context()
