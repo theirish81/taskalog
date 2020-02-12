@@ -1,0 +1,24 @@
+<html>
+<head></head>
+<body>
+    <h1>
+        Compliance failure for task
+    </h1>
+    <h2>Task: <span th:text="${msg.worklog.taskId}"></span></h2>
+    <h2>Worklog ID: <span th:text="${msg.worklog.id}"></span> </h2>
+    <div>
+        <h3>Late</h3>
+        <p th:text="${msg.status.late}"></p>
+    </div>
+    <div>
+        <h3>Valid</h3>
+        <p th:text="${msg.status.valid}"></p>
+    </div>
+    <div>
+        <h3>Details</h3>
+        <p th:text="${msg.status.details}"></p>
+    </div>
+
+
+</body>
+</html>

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.theirish81.messages.TalTask
+import com.github.theirish81.messages.TalTimer
 import java.io.File
 import java.util.*
 
@@ -22,16 +23,22 @@ object TalFS {
             file.mkdir()
         return file
     }
-
-    fun getWorklogCategoryFile(task : String, create : Boolean = true) : File {
-        val file = getWorklogsFile().resolve(task)
-        if(create && !file.exists())
-            file.mkdir()
+    fun getTaskWorklogsFile() : File {
+        val file = getWorklogsFile().resolve("tasks")
+        if(!file.exists())
+            file.mkdirs()
         return file
     }
 
-    fun getWorklogFile(task : String, worklogId : String) : File =
-            getWorklogCategoryFile(task).resolve(worklogId+".yml")
+    fun getTaskWorklogCategoryFile(task : String, create : Boolean = true) : File {
+        val file = getTaskWorklogsFile().resolve(task)
+        if(create && !file.exists())
+            file.mkdirs()
+        return file
+    }
+
+    fun getTaskWorklogFile(task : String, worklogId : String) : File =
+            getTaskWorklogCategoryFile(task).resolve(worklogId+".yml")
 
 
     fun getEtcFile() : File = File("etc")
@@ -41,7 +48,7 @@ object TalFS {
     fun getTaskFile(taskId : String) : File = getTasksFile().resolve(taskId+".yml")
 
     fun hasWorklogExpired(taskId : String, worklogId : String) : Boolean =
-            getWorklogCategoryFile(taskId).resolve("_"+worklogId).exists()
+            getTaskWorklogCategoryFile(taskId).resolve("_"+worklogId).exists()
 
     fun parseYamlFile(file : File) : Map<*,*> {
         return yamlObjectMapper.readValue(file,Map::class.java)
@@ -65,8 +72,36 @@ object TalFS {
     }
 
     fun createExpiryFile(taskId : String, worklogId : String) {
-        val file = getWorklogCategoryFile(taskId).resolve("_"+worklogId)
+        val file = getTaskWorklogCategoryFile(taskId).resolve("_"+worklogId)
         file.createNewFile()
         file.deleteOnExit()
     }
+
+    fun getTimersFile() : File = getEtcFile().resolve("timers")
+
+    fun getTimerFile(timerId : String) : File = getTimersFile().resolve(timerId+".yml")
+
+    fun loadTimer(name : String) : Optional<TalTimer> {
+        val found = getTimerFile(name)
+        if(found.exists())
+            return Optional.of(deserializeYaml(found, TalTimer::class.java))
+        return Optional.empty()
+    }
+
+    fun getTimerWorklogsFile() : File {
+        val file = getWorklogsFile().resolve("timers")
+        if(!file.exists())
+            file.mkdirs()
+        return file
+    }
+
+    fun getTimerWorklogFile(timerId : String) : File = getTimerWorklogsFile().resolve(timerId+".yml")
+
+    fun loadTimerWorklog(timerId : String) : Optional<TalTimer> {
+        val found = getTimerWorklogFile(timerId)
+        if(found.exists())
+            return Optional.of(deserializeYaml(found, TalTimer::class.java))
+        return Optional.empty()
+    }
+
 }

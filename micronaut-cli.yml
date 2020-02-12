@@ -1,0 +1,5 @@
+profile: service
+defaultPackage: com.github.theirish81
+---
+testFramework: kotlintest
+sourceLanguage: kotlin

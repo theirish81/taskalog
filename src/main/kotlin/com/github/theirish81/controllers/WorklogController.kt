@@ -42,7 +42,7 @@ class WorklogController {
     @Post("/submit")
     fun submit(@Body submission : TalSubmission) : HttpResponse<String> {
         GlobalScope.launch {
-            TalTaskActors.acceptSubmission?.send(submission)
+            TalTaskActors.acceptSubmission!!.send(submission)
         }
         return HttpResponse.accepted<String>()
     }
@@ -55,7 +55,7 @@ class WorklogController {
      */
     @Get("/{taskId}/{worklogId}")
     fun display(@PathVariable taskId : String, @PathVariable worklogId : String, @Header accept : String) : HttpResponse<String> {
-        val file = TalFS.getWorklogFile(taskId,worklogId)
+        val file = TalFS.getTaskWorklogFile(taskId,worklogId)
         val parsedAccept = if(accept == null) CONTENT_TYPE_APPLICATION_JSON else accept.toLowerCase()
         when(parsedAccept) {
             CONTENT_TYPE_X_YAML ->
