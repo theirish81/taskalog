@@ -162,7 +162,7 @@ Then when the message is accepted by an Executor, the following will be submitte
 	"id": "17185",
 	"task_id": "Scheduler",
 	"step_id": "delivered",
-	"sender_id": "AFScheduler",
+	"sender_id": "Executor",
 	"status": "DONE"
 }
 ```
@@ -173,7 +173,7 @@ Finally, when the Executor is done, it will submit the following:
 	"id": "17185",
 	"task_id": "Scheduler",
 	"step_id": "executed",
-	"sender_id": "AFScheduler",
+	"sender_id": "Executor",
 	"status": "DONE"
 }
 ```
