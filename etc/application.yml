@@ -4,3 +4,7 @@ micronaut:
 
 notificators:
   - 'com.github.theirish81.notifications.TalMailNotification'
+
+tickers:
+  tasks_seconds: 10
+  timers_seconds: 10
