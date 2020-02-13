@@ -200,4 +200,4 @@ The Scheduler is in charge of submitting the following data to the timer every t
 }
 ```
 
-If the time interval **at least one message** is being sent, then the timer is valid.
+If, in the time interval, **at least one message** is sent, then the timer is valid.
