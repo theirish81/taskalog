@@ -19,5 +19,6 @@ data class TalSubmission(val id : String,
                          @JsonProperty("step_id") val stepId : String,
                          @JsonProperty("sender_id") val senderId : String,
                          val status : String,
+                         @JsonProperty("meta") @JsonInclude(JsonInclude.Include.NON_NULL) val meta : Map<String,*> = HashMap<String,Any>(),
                          @JsonProperty("creation_date") @JsonInclude(JsonInclude.Include.NON_NULL) val creationDate : Date = Date(),
                          @JsonProperty("receive_date") @JsonInclude(JsonInclude.Include.NON_NULL) var receiveDate : Date? = Date())

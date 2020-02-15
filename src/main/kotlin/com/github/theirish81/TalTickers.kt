@@ -19,7 +19,7 @@ object TalTickers {
 
     val timer = Timer()
 
-    fun init() {
+    fun initialize() {
         timer.scheduleAtFixedRate(CheckTaskWorklogs(),TalConfig.getTaskTicker()*1000,TalConfig.getTaskTicker()*1000)
         timer.scheduleAtFixedRate(CheckTimerWorklogs(),TalConfig.getTimerTicker()*1000,TalConfig.getTimerTicker()*1000)
     }

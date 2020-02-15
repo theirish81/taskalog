@@ -8,3 +8,6 @@ notificators:
 tickers:
   tasks_seconds: 10
   timers_seconds: 10
+
+ingresses:
+  - 'com.github.theirish81.ingresses.TalRabbitIngress'

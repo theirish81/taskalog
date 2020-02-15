@@ -2,6 +2,7 @@ package com.github.theirish81
 
 import com.github.theirish81.actors.TalTaskActors
 import com.github.theirish81.actors.TalTimerActors
+import com.github.theirish81.ingresses.TalIngresses
 import io.micronaut.runtime.Micronaut
 import java.util.*
 
@@ -16,7 +17,8 @@ object Application {
                 .start()
         TalTaskActors.initialize()
         TalTimerActors.initialize()
-        TalTickers.init()
+        TalTickers.initialize()
+        TalIngresses.initialize()
     }
 
 }

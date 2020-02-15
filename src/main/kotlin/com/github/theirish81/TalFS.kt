@@ -59,6 +59,8 @@ object TalFS {
 
     fun <T> deserializeYaml(yaml : File, theClass : Class<T>) : T = yamlObjectMapper.readValue(yaml, theClass)
 
+    fun <T> deserializeJSON(data : ByteArray, theClass : Class<T>) : T = jsonObjectMapper.readValue(data, theClass)
+
     fun serializeAsYaml(item : Any) : String = yamlObjectMapper.writeValueAsString(item)
 
     fun serializeAsJSON(item : Any) : String = jsonObjectMapper.writeValueAsString(item)
