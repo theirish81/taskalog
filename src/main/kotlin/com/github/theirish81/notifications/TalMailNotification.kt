@@ -1,3 +1,19 @@
+/*
+ *   Copyright 2020 Simone Pezzano
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   @author Simone Pezzano
+ *
+ */
 package com.github.theirish81.notifications
 
 import com.github.theirish81.TalFS
@@ -18,12 +34,24 @@ import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 
 
+/**
+ * Notifications via email
+ */
 object TalMailNotification : ITalNotification {
 
+    /**
+     * A thread pool for the email notifications to queue up
+     */
     val pool = newSingleThreadContext("emailNotificationActorPool")
 
+    /**
+     * The logger
+     */
     val log = LoggerFactory.getLogger(TalMailNotification::class.java)
 
+    /**
+     * The template engine
+     */
     val templateEngine = TemplateEngine()
 
     override fun initialize() {
@@ -33,6 +61,11 @@ object TalMailNotification : ITalNotification {
         templateEngine.setTemplateResolver(resolver)
     }
 
+    /**
+     * Create the email props with default values
+     * @param config the mail notification configuration
+     * @return the props
+     */
     private fun setupProps(config: TalMailNotificationConfig) : Properties {
         val props = Properties()
         props["mail.smtp.timeout"] = "10000"
@@ -50,6 +83,12 @@ object TalMailNotification : ITalNotification {
         return props
     }
 
+    /**
+     * Sends an email
+     * @param text the body of the email
+     * @param subject the subject of the email
+     * @param config the mail notification config
+     */
     private fun sendEmail(text : String, subject : String, config : TalMailNotificationConfig) {
         val props = setupProps(config)
         val session: Session = Session.getInstance(props, null)
@@ -96,12 +135,32 @@ object TalMailNotification : ITalNotification {
         log.info("Shutting down")
     }
 
+    /**
+     * Loads the mail configuration
+     * @return the mail notification config
+     */
     private fun loadConfig() : TalMailNotificationConfig =
             loadConfig(TalFS.getEtcFile().resolve("mail_notification.yml"))
 
+    /**
+     * Loads the mail configuration
+     * @param file the configuration file
+     * @return the mail notification config
+     */
     private fun loadConfig(file : File) : TalMailNotificationConfig =
             TalFS.deserializeYaml(file, TalMailNotificationConfig::class.java)
 
+    /**
+     * The mail notification configuration bean
+     * @param from the from address
+     * @param host the address of the SMTP server
+     * @param port the port of the SMTP server
+     * @param username the username for the SMTP server
+     * @param password the password for the SMTP server
+     * @param startTLS true if TLS is being used
+     * @param recipient the recipient email address
+     * @param enabled true if the notification system is enabled
+     */
     data class TalMailNotificationConfig(val from : String, val host : String, val port : Int, val username : String,
                                             val password : String, val startTLS: Boolean, val recipient : String, val enabled: Boolean)
 }

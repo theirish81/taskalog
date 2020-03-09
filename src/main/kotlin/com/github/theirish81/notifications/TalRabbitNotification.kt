@@ -1,3 +1,19 @@
+/*
+ *   Copyright 2020 Simone Pezzano
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   @author Simone Pezzano
+ *
+ */
 package com.github.theirish81.notifications
 
 import com.github.theirish81.TalFS
@@ -10,12 +26,27 @@ import com.rabbitmq.client.ConnectionFactory
 import org.slf4j.LoggerFactory
 import java.io.File
 
+/**
+ * The RabbitMQ notification implementation
+ */
 object TalRabbitNotification : ITalNotification {
 
+    /**
+     * The connection to the RabbitMQ server
+     */
     var connection : Connection? = null
+    /**
+     * The channel to emit tasks notifications
+     */
     var tasksChannel : Channel? = null
+    /**
+     * The channel to emit timers notifications
+     */
     var timersChannel : Channel? = null
 
+    /**
+     * The logger
+     */
     val log = LoggerFactory.getLogger(TalRabbitNotification::class.java)
 
     override fun initialize() {
@@ -50,9 +81,18 @@ object TalRabbitNotification : ITalNotification {
             log.debug("Notificator disabled")
     }
 
+    /**
+     * Loads the RabbitMQ notification config
+     * @return the RabbitMQ notification config
+     */
     private fun loadConfig() : TalRabbitNotificationConfig =
         loadConfig(TalFS.getEtcFile().resolve("rabbitmq_notification.yml"))
 
+    /**
+     * Loads the RabbitMQ notification config
+     * @param file the file containing the configuration
+     * @return the RabbitMQ notification config
+     */
     private fun loadConfig(file : File) : TalRabbitNotificationConfig =
         TalFS.deserializeYaml(file,TalRabbitNotificationConfig::class.java)
 
@@ -63,5 +103,10 @@ object TalRabbitNotification : ITalNotification {
         connection!!.close()
     }
 
+    /**
+     * The bean containing the RabbitMQ notification config
+     * @param uri the RabbitMQ URI
+     * @param enabled true if the notification system is enabled
+     */
     data class TalRabbitNotificationConfig(val uri : String, val enabled : Boolean)
 }
