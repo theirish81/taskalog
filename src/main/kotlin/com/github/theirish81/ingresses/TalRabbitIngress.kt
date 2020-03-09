@@ -8,6 +8,7 @@ import com.github.theirish81.messages.TalTimer
 import com.rabbitmq.client.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 
 object TalRabbitIngress : ITalIngress {
 
@@ -15,7 +16,10 @@ object TalRabbitIngress : ITalIngress {
     var tasksChannel : Channel? = null
     var timersChannel : Channel? = null
 
+    val log = LoggerFactory.getLogger(TalRabbitIngress::class.java)
+
     override fun start() {
+        log.info("Starting")
         val configFile = TalFS.getEtcFile().resolve("rabbitmq_ingress.yml")
         if(configFile.exists()) {
             val data : Map<String,Any> = TalFS.deserializeYaml(configFile,Map::class.java) as Map<String,Any>
@@ -51,5 +55,12 @@ object TalRabbitIngress : ITalIngress {
                 TalTimerActors.acceptSubmission!!.send(talTimer)
             }
         }
+    }
+
+    override fun shutdown() {
+        log.info("Shutting down")
+        tasksChannel!!.close()
+        timersChannel!!.close()
+        connection!!.close()
     }
 }

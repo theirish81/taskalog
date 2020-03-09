@@ -4,4 +4,6 @@ interface ITalIngress {
 
     fun start()
 
+    fun shutdown()
+
 }

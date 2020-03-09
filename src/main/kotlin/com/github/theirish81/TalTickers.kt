@@ -23,6 +23,10 @@ object TalTickers {
         timer.scheduleAtFixedRate(CheckTaskWorklogs(),TalConfig.getTaskTicker()*1000,TalConfig.getTaskTicker()*1000)
         timer.scheduleAtFixedRate(CheckTimerWorklogs(),TalConfig.getTimerTicker()*1000,TalConfig.getTimerTicker()*1000)
     }
+
+    fun shutdown() {
+        timer.cancel()
+    }
 }
 
 class CheckTaskWorklogs : TimerTask() {

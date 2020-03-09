@@ -3,9 +3,20 @@ package com.github.theirish81.ingresses
 object TalIngresses {
 
     fun initialize() {
-        (TalConfig.appConfig["ingresses"] as List<String>).forEach {
-            val ingress = Class.forName(it).kotlin.objectInstance as ITalIngress
-            ingress.start()
+        getIngresses().forEach {
+            it.start()
+        }
+    }
+
+    fun shutdown() {
+        getIngresses().forEach {
+            it.shutdown()
+        }
+    }
+
+    fun getIngresses() : List<ITalIngress> {
+        return (TalConfig.appConfig["ingresses"] as List<String>).map {
+            Class.forName(it).kotlin.objectInstance as ITalIngress
         }
     }
 }

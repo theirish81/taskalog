@@ -1,0 +1,2 @@
+uri: amqp://apif:jk5112@127.0.0.1:5672/%2F
+enabled: false
