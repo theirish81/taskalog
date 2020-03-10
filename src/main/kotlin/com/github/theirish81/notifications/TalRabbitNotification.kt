@@ -52,13 +52,16 @@ object TalRabbitNotification : ITalNotification {
     override fun initialize() {
         val configFile = TalFS.getEtcFile().resolve("rabbitmq_notification.yml")
         if(configFile.exists()) {
-            log.info("Initializing")
-            val uri = loadConfig(configFile).uri
-            val factory = ConnectionFactory()
-            factory.setUri(uri)
-            connection = factory.newConnection()
-            tasksChannel = connection!!.createChannel()
-            timersChannel = connection!!.createChannel()
+            val config = loadConfig(configFile)
+            if(config.enabled) {
+                log.info("Initializing")
+                val uri = config.uri
+                val factory = ConnectionFactory()
+                factory.setUri(uri)
+                connection = factory.newConnection()
+                tasksChannel = connection!!.createChannel()
+                timersChannel = connection!!.createChannel()
+            }
         }
     }
     override fun notify(msg: TalStatusAndWorklog) {
