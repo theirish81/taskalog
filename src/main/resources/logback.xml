@@ -42,10 +42,10 @@
     <logger name="timer.actors" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="com.github.theirish81.CheckTaskWorklogs" level="DEBUG" additivity="false">
+    <logger name="com.github.theirish81.taskalog.CheckTaskWorklogs" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="com.github.theirish81.CheckTimerWorklogs" level="DEBUG" additivity="false">
+    <logger name="com.github.theirish81.taskalog.CheckTimerWorklogs" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
     <logger name="task_results" level="INFO" additivity="false">

@@ -1,5 +1,5 @@
 profile: service
-defaultPackage: com.github.theirish81
+defaultPackage: com.github.theirish81.taskalog
 ---
 testFramework: kotlintest
 sourceLanguage: kotlin

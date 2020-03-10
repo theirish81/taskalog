@@ -3,12 +3,12 @@ micronaut:
     name: taskalog
 
 notificators:
-  - 'com.github.theirish81.notifications.TalMailNotification'
-  - 'com.github.theirish81.notifications.TalRabbitNotification'
+  - 'com.github.theirish81.taskalog.notifications.TalMailNotification'
+  - 'com.github.theirish81.taskalog.notifications.TalRabbitNotification'
 
 tickers:
   tasks_seconds: 10
   timers_seconds: 10
 
 ingresses:
-  - 'com.github.theirish81.ingresses.TalRabbitIngress'
+  - 'com.github.theirish81.taskalog.ingresses.TalRabbitIngress'

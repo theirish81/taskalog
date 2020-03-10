@@ -50,7 +50,7 @@ dependencies {
 
 test.classpath += configurations.developmentOnly
 
-mainClassName = "com.github.theirish81.Application"
+mainClassName = "com.github.theirish81.taskalog.Application"
 
 test {
     useJUnitPlatform()
