@@ -1,0 +1,9 @@
+tasks:
+  - url: https://example.com/webhook1
+    headers:
+      foo: bar
+timers:
+  - url: https://example.com/webhook2
+    headers:
+      foo: bar
+enabled: false

@@ -5,6 +5,7 @@ micronaut:
 notificators:
   - 'com.github.theirish81.taskalog.notifications.TalMailNotification'
   - 'com.github.theirish81.taskalog.notifications.TalRabbitNotification'
+  - 'com.github.theirish81.taskalog.notifications.TalHookNotification'
 
 tickers:
   tasks_seconds: 10
