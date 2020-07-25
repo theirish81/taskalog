@@ -5,7 +5,7 @@ A simple system to log (lack of) completion of complex tasks in a software syste
 ## The problem
 
 In a microservices architecture, some components emit a message that should cause the execution of certain tasks in
-other components. This may happen directly, using an API call, others may be conveyd by asynchronous systems, such as
+other components. This may happen directly, using an API call, others may be conveyed by asynchronous systems, such as
 message queues.
 
 The completion of a task composed of multiple sub-tasks distributed on different microservices can be hard, whether
@@ -137,7 +137,7 @@ The shape of the messages is analogous to the ones shown in the *Inbound HTTP ca
 
 ## Integration
 
-Let's analyze how to use Task-A-Log in a real world scenario.
+Let's analyze how to use Task-a-Log in a real world scenario.
 
 ### The Scheduled task example 
 
@@ -171,7 +171,7 @@ steps:
     status: NONE
 ```
 
-Once one process is started, the Scheduler will submit the following message to Task-A-Log:
+Once one process is started, the Scheduler will submit the following message to Task-a-Log:
 
 ```json
 {
@@ -229,3 +229,11 @@ The Scheduler is in charge of submitting the following data to the timer every t
 ```
 
 If, in the time interval, **at least one message** is sent, then the timer is valid.
+
+## Running using Docker
+
+[This repository](https://github.com/theirish81/taskalog]) contains a sample
+[docker-compose.yml](https://github.com/theirish81/taskalog/blob/master/docker-compose.yml) file that will allow you to
+run the Task-a-Log image. It mounts the two necessary directories `etc` and `results`.
+
+The `etc` directory needs to pre-exist and include the right configuration files for the application to start.
