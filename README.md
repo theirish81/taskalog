@@ -60,17 +60,37 @@ You may want to activate notifications to trigger when a condition is not met.
 
 To activate a notificator, edit the `notificator` list in the `etc/application.yml` file.
 
-Currently we support a rudimentary email notificator. E-mail settings can be confiured in the `mail_notification.yml`
-file.
- 
- 
+Currently we support three types of notificator.
+
+#### Email
+
+An email will be sent every time a condition is not met.
+The main configuration file is `etc/mail_notification.yml`, while email templates are stored in the
+`etc/email_templates` directory.
+
+#### RabbitMQ
+
+A serialized version of the log will be placed in a RabbitMQ queue named `taskalog_notifications`
+every time a condition is not met.
+The main configuration file is `etc/rabbitmq_notification.yml`. 
+
+#### Web Hooks
+
+A serialized version of the log will be placed in a POST body and sent to a number of web hooks
+every time a condition is not met.
+The main configuration file is `etc/hooks_notification.yml`.
+
 ### Results
 
-Results are logged in the `results` directory.
+All events are logged in the `results` directory.
 
-## Interactions
+### Ingresses
 
-Currently the only communication protocol available to communicate an event to Task-A-Log is HTTP calls to an API.
+Currently we support two types of ingress.
+
+#### Inbound HTTP calls
+
+two endpoints are available to receive the events
 
 * `POST /worklog/submit`: to submit an task event. The body is made of:
     
@@ -106,6 +126,14 @@ Currently the only communication protocol available to communicate an event to T
     	"id":"EmailTimer"
     }
     ```
+
+#### RabbitMQ
+
+This module will subscribe to two queues waiting for events: `taskalog_tasks` and `taskalog_timers`.
+The queues need to exist prior to Task-a-Log bootstrap.
+
+The shape of the messages is analogous to the ones shown in the *Inbound HTTP calls*. 
+
 
 ## Integration
 
